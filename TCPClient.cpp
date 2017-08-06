@@ -1,4 +1,4 @@
-#include "TCPClient.h"
+#include "inc/TCPClient.h"
 
 #define MAX_RECEIVE_BUFFER_SIZE	256
 #define MAX_DUMP_ROW_SEPERATE	8

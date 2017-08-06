@@ -24,11 +24,23 @@
     <ClCompile Include="SocketOptions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TCPClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TCPConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TCPServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\LibSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Socket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -38,10 +50,16 @@
     <ClInclude Include="inc\SocketOptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Thread.h">
+    <ClInclude Include="inc\TCPClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\LibSocket.h">
+    <ClInclude Include="inc\TCPConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\TCPServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

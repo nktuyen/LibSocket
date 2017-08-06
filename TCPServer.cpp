@@ -1,4 +1,4 @@
-#include "TCPServer.h"
+#include "inc/TCPServer.h"
 
 #define MAX_RECEIVE_BUFFER_SIZE	256
 #define MAX_DUMP_ROW_SEPERATE	8
