@@ -4,13 +4,16 @@
 #define MAX_DUMP_ROW_SEPERATE	8
 #define MAX_DUMP_ROW_WIDTH		16
 
-TCPClient::TCPClient(char* ip, unsigned short port)
+namespace t{
+//////////////////////////////////////////////////////////////////////////
+
+TCPClient::TCPClient(char* serverIP, unsigned short serverPort)
 	:mSocket(t::EAddressFamilyIPv4, t::ESocketStream, t::EProtocolTCP)
-	, mServerPort(port)
+	, mServerPort(serverPort)
 {
 	memset(mServerAddr, 0, MAX_IP_ADDR_LEN * sizeof(char));
-	if (nullptr != ip) {
-		memcpy(mServerAddr, ip, MAX_IP_ADDR_LEN * sizeof(char));
+	if (nullptr != serverIP) {
+		memcpy(mServerAddr, serverIP, MAX_IP_ADDR_LEN * sizeof(char));
 	}
 }
 
@@ -119,3 +122,6 @@ int TCPClient::Send(char* buffer, int len)
 
 	return res;
 }
+
+//////////////////////////////////////////////////////////////////////////
+};	//namespace

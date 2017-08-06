@@ -4,7 +4,8 @@
 #include "../LibSocket/inc/Thread.h"
 #include "../LibSocket/inc/Socket.h"
 
-#define MAX_IP_ADDR_LEN	64
+namespace t{
+//////////////////////////////////////////////////////////////////////////
 
 class TCPClient : public t::Thread
 {
@@ -16,7 +17,7 @@ private:
 	char mServerAddr[MAX_IP_ADDR_LEN];
 	unsigned short mServerPort;
 public:
-	TCPClient(char* ip, unsigned short port);
+	TCPClient(char* serverIP, unsigned short serverPort);
 	virtual ~TCPClient();
 	int Send(char* buffer, int len);
 protected:
@@ -27,5 +28,7 @@ protected:
 private:
 	void Dump(char* data, int len);
 };
+//////////////////////////////////////////////////////////////////////////
+};	//namespace
 //////////////////////////////////////////////////////////////////////////
 #endif // !__TCP_CLIENT_H__

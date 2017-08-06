@@ -6,17 +6,25 @@
 #include "../LibSocket/inc/Socket.h"
 #include "TCPConnection.h"
 
-class TCPServer : public t::Thread
+namespace t{
+//////////////////////////////////////////////////////////////////////////
+
+class TCPServer : public Thread
 {
 public:
 protected:
 private:
-	t::Socket mSocket;
+	Socket mSocket;
+	char mIP[MAX_IP_ADDR_LEN];
+	UShort	mPort;
 	std::map<t::Socket*,TCPConnection*> mConnections;
 	typedef std::map<t::Socket*,TCPConnection*>::iterator ConnectionIter;
 public:
-	TCPServer();
+	TCPServer(UShort uPort);
 	virtual ~TCPServer();
+
+	inline const char* getAddress() { return mIP; }
+	inline UShort getPortNumber() { return mPort; }
 protected:
 	bool onInitialize();
 	void onRun();
@@ -25,6 +33,7 @@ private:
 	void Dump(char* data, int len);
 	void closeAllConnection();
 };
-
+//////////////////////////////////////////////////////////////////////////
+};	//namespace
 //////////////////////////////////////////////////////////////////////////
 #endif	//__TCP_SERVER_H__

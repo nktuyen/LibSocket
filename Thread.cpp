@@ -34,6 +34,7 @@ void* ThreadFunc(void* lparam)
 Thread::Thread()
 {
 	m_hThread = InvalidThread;
+	m_bInitDone = false;
 }
 
 
@@ -49,7 +50,9 @@ bool Thread::Create(size_t stackSize /* = 0 */)
 
 #if(defined(_WIN32) || defined(_WIN64))
 	DWORD dwID = 0;
-	m_hThread = CreateThread(nullptr, stackSize, (LPTHREAD_START_ROUTINE)ThreadFunc, this, 0, &dwID);
+
+	m_bInitDone = false;
+	m_hThread = CreateThread(nullptr, stackSize, (LPTHREAD_START_ROUTINE)ThreadFunc, this, CREATE_SUSPENDED, &dwID);
 #else
 	m_hThread = new ThreadObject();
 	pthread_attr_t	attr = { 0 };
@@ -61,38 +64,42 @@ bool Thread::Create(size_t stackSize /* = 0 */)
 	}
 	res = pthread_attr_destroy(&attr);
 #endif
+	
 	if (InvalidThread == m_hThread) {
 		return false;
 	}
 	else {
+#if(defined(_WIN32) || defined(_WIN64))
+		ResumeThread(m_hThread);
+#else
+#endif
+		while (!isInitDone()){;}
 		return true;
 	}
-
 }
 
 bool Thread::Initialize()
 {
 	if (!this->onInitialize()) {
+		setInitDone(true);
 		return false;
 	}
 
+	setInitDone(true);
 	return true;
 }
 
 int Thread::Run()
 {
-	m_mutex.lock();
-	m_bRunning = true;
-	m_mutex.unlock();
+	setRunning(true);
+
 	this->onRun();
 	return Finalize();
 }
 
 int Thread::Finalize()
 {
-	m_mutex.lock();
-	m_bRunning = false;
-	m_mutex.unlock();
+	setRunning(false);
 
 	int res = this->onFinalize();
 	CloseThread(m_hThread);

@@ -76,15 +76,19 @@ typedef int	socklen_t;
 #define InvalidThread	(ThreadHandle)nullptr
 #define CloseThread(t)	if(InvalidThread != t){delete t; t = InvalidThread;}
 
+#define Sleep(milisec)	sleep(milisec/1000)
+
 // Type definition --------------
 typedef unsigned short ADDRESS_FAMILY;
 #endif
 
 
-#define InvalidSocket	(SocketHandle)(~0)
-#define SocketError		(int)(-1)
+#define InvalidSocket		(SocketHandle)(~0)
+#define SocketError			(int)(-1)
 #undef  NULL
 #define	WSAGetLastError()	errno
+
+#define MAX_IP_ADDR_LEN		64
 
 namespace t{
 //////////////////////////////////////////////////////////////////////////	

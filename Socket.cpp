@@ -7,9 +7,10 @@
 namespace t{
 ////////////////////////////////////////////
 Socket::Socket(EAddressFamily af, ESocketType type, EProtocol proto)
-: m_Options(m_hSocket)
+: m_hSocket(InvalidSocket)
+, m_Options(m_hSocket)
 {
-	m_eAddressFamily = af;
+	m_addr.sin_family = af;
 	m_eType = type;
 	m_eProtocol = proto;
 	m_nLastErr = 0;
@@ -29,25 +30,26 @@ Socket::~Socket(void)
 Socket* Socket::Accept()
 {
 	Socket* pSocket = nullptr;
-
-	if (!this->onAccepting()) {
-		return pSocket;
-	}
 	
-	sockaddr_in addr = { 0 };
-	socklen_t len = sizeof(addr);
+	sockaddr_in remoteAddr = { 0 };
+	socklen_t len = sizeof(remoteAddr);
 	SocketMutex locker(&m_Locker);
-	SocketHandle hSock = accept(m_hSocket, (sockaddr*)&addr, &len);
+	SocketHandle hSock = accept(m_hSocket, (sockaddr*)&remoteAddr, &len);
 	if (InvalidSocket != hSock) {
+		if (!this->onAccepting(hSock, remoteAddr)) {
+			CloseSocket(hSock);
+			return pSocket;
+		}
+
 		pSocket = new Socket(EAddressFamilyUnspecified, ESocketUnknow, EProtocolUnknow);
 		if (nullptr != pSocket) {
-			if (!pSocket->Attach(static_cast<EAddressFamily>(addr.sin_family), hSock, inet_ntoa(addr.sin_addr), addr.sin_port)) {
+			if (!pSocket->Attach(hSock, remoteAddr)) {
 				CloseSocket(hSock);
 				delete pSocket;
 				pSocket = nullptr;
 			}
 			else {
-				this->onAccepted(static_cast<EAddressFamily>(addr.sin_family), inet_ntoa(addr.sin_addr), addr.sin_port, pSocket);
+				this->onAccepted(pSocket);
 			}
 		}
 	}
@@ -55,13 +57,13 @@ Socket* Socket::Accept()
 	return pSocket;
 }
 
-bool Socket::Attach(EAddressFamily af, SocketHandle hSocket, char* ip, UShort port)
+bool Socket::Attach(SocketHandle hSocket, const sockaddr_in& addr)
 {
 	if (InvalidSocket != m_hSocket) {
 		return false;
 	}
 
-	if (!onAttaching(af, hSocket, ip, port)) {
+	if (!onAttaching(hSocket, addr)) {
 		return false;
 	}
 
@@ -81,12 +83,12 @@ SocketHandle Socket::Detach()
 	}
 
 	SocketHandle hSocket = m_hSocket;
-	this->onDetaching(m_hSocket);
 	m_hSocket = InvalidSocket;
+	this->onDetaching(hSocket);
 	m_Options.setSocketHandle(InvalidSocket);
 	m_eType = ESocketUnknow;
-	m_eAddressFamily = EAddressFamilyUnspecified;
 	m_eProtocol = EProtocolUnknow;
+	memset(&m_addr, 0, sizeof(sockaddr));
 
 	this->onDetached();
 
@@ -102,7 +104,7 @@ bool Socket::Bind(char* ip, unsigned short port)
 
 	sockaddr_in addr = { 0 };
 
-	addr.sin_family = static_cast<ADDRESS_FAMILY>(m_eAddressFamily);
+	addr.sin_family = m_addr.sin_family;
 	addr.sin_addr.s_addr = inet_addr(ip);
 	addr.sin_port = htons(port);
 
@@ -129,14 +131,14 @@ bool Socket::Connect(char* ip, unsigned short port)
 		return false;
 	}
 
-	sockaddr_in addr = { 0 };
+	sockaddr_in remoteAddr = { 0 };
 
-	addr.sin_family = static_cast<ADDRESS_FAMILY>(m_eAddressFamily);
-	addr.sin_addr.s_addr = inet_addr(ip);
-	addr.sin_port = htons(port);
+	remoteAddr.sin_family = static_cast<ADDRESS_FAMILY>(m_addr.sin_family);
+	remoteAddr.sin_addr.s_addr = inet_addr(ip);
+	remoteAddr.sin_port = htons(port);
 
 	SocketMutex locker(&m_Locker);
-	m_nLastErr = connect(m_hSocket, (sockaddr*)&addr, sizeof(addr));
+	m_nLastErr = connect(m_hSocket, (sockaddr*)&remoteAddr, sizeof(remoteAddr));
 	if (SocketError == m_nLastErr) {
 		memset(m_szLastError, 0, MAX_SOCKET_ERR_DESC);
 #if(defined(_WIN32) || defined(_WIN64) )
@@ -153,12 +155,12 @@ bool Socket::Connect(char* ip, unsigned short port)
 
 bool Socket::Create()
 {
-	if(!this->onCreating(m_eAddressFamily, m_eType, m_eProtocol)) {
+	if(!this->onCreating(m_eType, m_eProtocol)) {
 		return false;
 	}
 
 	SocketMutex locker(&m_Locker);
-	m_hSocket = socket(static_cast<int>(m_eAddressFamily), static_cast<int>(m_eType), static_cast<int>(m_eProtocol));
+	m_hSocket = socket(static_cast<int>(m_addr.sin_family), static_cast<int>(m_eType), static_cast<int>(m_eProtocol));
 	if (InvalidSocket == m_hSocket) {
 		memset(m_szLastError, 0, MAX_SOCKET_ERR_DESC);
 #if(defined(_WIN32) || defined(_WIN64) )
@@ -225,14 +227,14 @@ int Socket::receiveFrom(char* buffer, int len, int flags, char* ip, unsigned sho
 		return -1;
 	}
 
-	sockaddr_in addr = { 0 };
-	socklen_t addrLen = sizeof(addr);
-	addr.sin_family = m_eAddressFamily;
-	addr.sin_addr.s_addr = inet_addr(ip);
-	addr.sin_port = htons(port);
+	sockaddr_in remoteAddr = { 0 };
+	socklen_t addrLen = sizeof(remoteAddr);
+	remoteAddr.sin_family = m_addr.sin_family;
+	remoteAddr.sin_addr.s_addr = inet_addr(ip);
+	remoteAddr.sin_port = htons(port);
 
 	SocketMutex locker(&m_Locker);
-	int nRecvLen = recvfrom(m_hSocket, buffer, len, flags, (sockaddr*)&addr, &addrLen);
+	int nRecvLen = recvfrom(m_hSocket, buffer, len, flags, (sockaddr*)&remoteAddr, &addrLen);
 
 	if (nRecvLen <= 0) {
 		m_nLastErr = WSAGetLastError();
@@ -276,14 +278,14 @@ int Socket::sendTo(char* buffer, int len, int flags, char* ip, unsigned short po
 		return -1;
 	}
 
-	sockaddr_in addr = { 0 };
-	socklen_t addrLen = sizeof(addr);
-	addr.sin_family = m_eAddressFamily;
-	addr.sin_addr.s_addr = inet_addr(ip);
-	addr.sin_port = htons(port);
+	sockaddr_in remoteAddr = { 0 };
+	socklen_t addrLen = sizeof(remoteAddr);
+	remoteAddr.sin_family = m_addr.sin_family;
+	remoteAddr.sin_addr.s_addr = inet_addr(ip);
+	remoteAddr.sin_port = htons(port);
 
 	SocketMutex locker(&m_Locker);
-	int nSentTo = sendto(m_hSocket, buffer, len, flags, (sockaddr*)&addr, sizeof(addr));
+	int nSentTo = sendto(m_hSocket, buffer, len, flags, (sockaddr*)&remoteAddr, sizeof(remoteAddr));
 
 	if (nSentTo <= 0) {
 		m_nLastErr = WSAGetLastError();

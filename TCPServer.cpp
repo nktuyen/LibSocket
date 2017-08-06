@@ -4,10 +4,14 @@
 #define MAX_DUMP_ROW_SEPERATE	8
 #define MAX_DUMP_ROW_WIDTH		16
 
-TCPServer::TCPServer()
+namespace t{
+//////////////////////////////////////////////////////////////////////////
+
+TCPServer::TCPServer(UShort uPort)
 	: mSocket(t::EAddressFamilyIPv4, t::ESocketStream, t::EProtocolTCP)
+	, mPort(uPort)
 {
-	
+	memset(mIP, 0, MAX_IP_ADDR_LEN*sizeof(char));
 }
 
 
@@ -35,22 +39,23 @@ bool TCPServer::onInitialize()
 		sockaddr_in addr = { 0 };
 		addr.sin_addr.s_addr = *(u_long *)host->h_addr_list[0];
 		ip = inet_ntoa(addr.sin_addr);
-		printf("Local address: %s\n", ip);
+		if(nullptr != ip) {
+			memcpy(mIP, ip, MAX_IP_ADDR_LEN-1);
+			mIP[MAX_IP_ADDR_LEN-1] = 0;
+		}
 	}
 
 	if (!mSocket.Create()) {
 		return false;
 	}
 
-	if (!mSocket.Bind(ip, 20001)) {
+	if (!mSocket.Bind(ip, mPort)) {
 		return false;
 	}
 
 	if (!mSocket.Listen(SOMAXCONN)) {
 		return false;
 	}
-
-	printf("Listening...\n");
 
 	return true;
 }
@@ -79,6 +84,7 @@ void TCPServer::onRun()
 
 int TCPServer::onFinalize()
 {
+	closeAllConnection();
 	mSocket.Shutdown(t::EShutdowBoth);
 	return WSACleanup();
 }
@@ -117,3 +123,6 @@ void TCPServer::closeAllConnection()
 		}
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
+};	//namespace

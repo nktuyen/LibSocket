@@ -12,7 +12,7 @@ class Socket
 private:
 	SocketOptions m_Options;
 	SocketHandle m_hSocket;
-	EAddressFamily m_eAddressFamily;
+	sockaddr_in m_addr;
 	EProtocol m_eProtocol;
 	ESocketType m_eType;
 	int m_nLastErr;
@@ -23,7 +23,7 @@ public:
 	virtual ~Socket();
 public:
 	Socket* Accept();
-	bool Attach(EAddressFamily af, SocketHandle hSocket, char* ip, UShort port);
+	bool Attach(SocketHandle hSocket, const sockaddr_in& addr);
 	SocketHandle Detach();
 	bool Bind(char* ip, unsigned short port);
 	bool Connect(char* ip, unsigned short port);
@@ -44,19 +44,19 @@ public:
 	inline SocketHandle getHandle() { return m_hSocket; }
 	inline const SocketOptions& Options() { return m_Options; }
 	inline ESocketType getType() { return m_eType; }
-	inline EAddressFamily getAddressFamily() { return m_eAddressFamily; }
+	inline EAddressFamily getAddressFamily() { return static_cast<EAddressFamily>(m_addr.sin_family); }
 	inline EProtocol getProtocol() { return m_eProtocol; }
 protected:
-	virtual void onAccepted(EAddressFamily af, char* ip, UShort por, Socket* pSocket) { ; }
-	virtual bool onAccepting() { return true; }
+	virtual void onAccepted(Socket* pSocket) { ; }
+	virtual bool onAccepting(SocketHandle hSocket, const sockaddr_in& addr) { return true; }
 	virtual void onAttached() { ; }
-	virtual bool onAttaching(EAddressFamily af, SocketHandle hSocket, char* ip, UShort port) { return true; }
+	virtual bool onAttaching(SocketHandle hSocket, const sockaddr_in& addr) { return true; }
 	virtual bool onBinding(char* ip, unsigned short port) { return true; }
 	virtual void onBound() { ; }
 	virtual void onConnected() { ; }
 	virtual bool onConnecting(char* ip, unsigned short port) { return true; }
 	virtual void onCreated() { ; }
-	virtual bool onCreating(EAddressFamily af, ESocketType type, EProtocol proto) { return true; }
+	virtual bool onCreating(ESocketType type, EProtocol proto) { return true; }
 	virtual void onDetaching(SocketHandle hSocket) { ; }
 	virtual void onDetached() { ; }
 	virtual void onListened() { ; }

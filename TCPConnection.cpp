@@ -22,6 +22,8 @@ bool TCPConnection::onInitialize()
 		return false;
 	}
 
+	printf("\nNew connection...");
+
 	return true;
 }
 
