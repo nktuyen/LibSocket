@@ -29,7 +29,7 @@ public:
 	bool Connect(char* ip, unsigned short port);
 	bool Create();
 	int lastError() { return m_nLastErr; }
-	char* lastErrorDesc() { return m_szLastError; }
+	char* lastErrorDesc() { char* s = strerror(m_nLastErr); memcpy(m_szLastError, s, MAX_SOCKET_ERR_DESC);  return m_szLastError; }
 	bool Listen(int backlog);
 	int Receive(char* buffer, int len, int flags);
 	int receiveFrom(char* buffer, int len, int flags, char* ip, unsigned short port);

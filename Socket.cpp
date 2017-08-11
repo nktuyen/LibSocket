@@ -372,6 +372,9 @@ bool Socket::readyToReceive()
 		return true;
 	}
 	else {
+		if(-1 == res) {
+			m_nLastErr = WSAGetLastError();
+		}
 		return false;
 	}
 }
@@ -398,6 +401,9 @@ bool Socket::readyToSend()
 		return true;
 	}
 	else {
+		if(-1 == res) {
+			m_nLastErr = WSAGetLastError();
+		}
 		return false;
 	}
 }
@@ -426,6 +432,9 @@ bool Socket::readyToTransmition()
 		return true;
 	}
 	else {
+		if(-1 == res) {
+			m_nLastErr = WSAGetLastError();
+		}
 		return false;
 	}
 }

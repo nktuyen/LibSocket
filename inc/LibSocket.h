@@ -55,7 +55,7 @@
 #define ThreadHandle	HANDLE
 #define InvalidThread	INVALID_HANDLE_VALUE
 #define CloseThread(t)	if(InvalidThread != t){CloseHandle(t); t = InvalidThread;}
-
+#define ThreadReturn(res)	res
 // Type definition --------------
 typedef int	socklen_t;
 #else
@@ -67,6 +67,8 @@ typedef int	socklen_t;
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <errno.h>
+#include <netdb.h>
 // Macros ----------------------
 
 #define	SocketHandle		int
@@ -75,8 +77,13 @@ typedef int	socklen_t;
 #define ThreadObject	pthread_t
 #define InvalidThread	(ThreadHandle)nullptr
 #define CloseThread(t)	if(InvalidThread != t){delete t; t = InvalidThread;}
-
+#define WSACleanup()	(0)
+#define WSADATA			char
+#define WSAStartup(a,b)	(0)
 #define Sleep(milisec)	sleep(milisec/1000)
+#define ThreadReturn(res)	reinterpret_cast<void*>(res)
+#define HANDLE			int
+#define CloseHandle(h)	close(h)
 
 // Type definition --------------
 typedef unsigned short ADDRESS_FAMILY;

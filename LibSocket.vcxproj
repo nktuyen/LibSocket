@@ -54,6 +54,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy *.h ../Inc /y /d /s
+xcopy *.hpp ../Inc /y /d /s
+xcopy *.lib ../Lib /y /d /s</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -69,6 +74,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy *.h ../Inc /y /d /s
+xcopy *.hpp ../Inc /y /d /s
+xcopy *.lib ../Lib /y /d /s</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Socket.cpp" />

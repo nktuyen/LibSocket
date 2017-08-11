@@ -1,3 +1,4 @@
+#include <iostream>
 #include "inc/TCPServer.h"
 
 #define MAX_RECEIVE_BUFFER_SIZE	256
@@ -7,11 +8,14 @@
 namespace t{
 //////////////////////////////////////////////////////////////////////////
 
-TCPServer::TCPServer(UShort uPort)
+TCPServer::TCPServer(UShort uPort, const char* ip /* = nullptr */)
 	: mSocket(t::EAddressFamilyIPv4, t::ESocketStream, t::EProtocolTCP)
 	, mPort(uPort)
 {
 	memset(mIP, 0, MAX_IP_ADDR_LEN*sizeof(char));
+	if(nullptr != ip) {
+		memcpy(&mIP, ip, MAX_IP_ADDR_LEN*sizeof(char));
+	}
 }
 
 
@@ -29,19 +33,21 @@ bool TCPServer::onInitialize()
 		return false;
 	}
 
-	char name[255] = { 0 };
-	int len = gethostname(name, 255);
-	struct hostent* host = gethostbyname(name);
-	char* ip = nullptr;
+	if(mIP[0] == 0) {
+		char name[255] = { 0 };
+		int len = gethostname(name, 255);
+		struct hostent* host = gethostbyname(name);
+		char* ip = nullptr;
 
-	if (host->h_addrtype == AF_INET)
-	{
-		sockaddr_in addr = { 0 };
-		addr.sin_addr.s_addr = *(u_long *)host->h_addr_list[0];
-		ip = inet_ntoa(addr.sin_addr);
-		if(nullptr != ip) {
-			memcpy(mIP, ip, MAX_IP_ADDR_LEN-1);
-			mIP[MAX_IP_ADDR_LEN-1] = 0;
+		if (host->h_addrtype == AF_INET)
+		{
+			sockaddr_in addr = { 0 };
+			addr.sin_addr.s_addr = *(u_long *)host->h_addr_list[0];
+			ip = inet_ntoa(addr.sin_addr);
+			if(nullptr != ip) {
+				memcpy(mIP, ip, MAX_IP_ADDR_LEN-1);
+				mIP[MAX_IP_ADDR_LEN-1] = 0;
+			}
 		}
 	}
 
@@ -49,7 +55,7 @@ bool TCPServer::onInitialize()
 		return false;
 	}
 
-	if (!mSocket.Bind(ip, mPort)) {
+	if (!mSocket.Bind(mIP, mPort)) {
 		return false;
 	}
 
@@ -64,9 +70,11 @@ void TCPServer::onRun()
 {
 	char buffer[MAX_RECEIVE_BUFFER_SIZE] = { 0 };
 	int len = 0;
+
 	while (isRunning())
 	{
-		if (mSocket.readyToReceive()) {
+		if (mSocket.readyToTransmition()) {
+			std::cout << "\nreadyToTransmition...";
 			t::Socket* pSocket = mSocket.Accept();
 			if(nullptr != pSocket) {
 				TCPConnection* pConn = new TCPConnection(pSocket);
@@ -78,6 +86,9 @@ void TCPServer::onRun()
 					delete pSocket;
 				}
 			}
+		}
+		else {
+			//std::cout << mSocket.lastErrorDesc() << std::endl;
 		}
 	}
 }

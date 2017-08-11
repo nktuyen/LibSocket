@@ -2,8 +2,8 @@
 #define __TCP_SERVER_H__
 //////////////////////////////////////////////////////////////////////////
 #include <map>
-#include "../LibSocket/inc/Thread.h"
-#include "../LibSocket/inc/Socket.h"
+#include "Thread.h"
+#include "Socket.h"
 #include "TCPConnection.h"
 
 namespace t{
@@ -20,7 +20,7 @@ private:
 	std::map<t::Socket*,TCPConnection*> mConnections;
 	typedef std::map<t::Socket*,TCPConnection*>::iterator ConnectionIter;
 public:
-	TCPServer(UShort uPort);
+	TCPServer(UShort uPort, const char* ip = nullptr);
 	virtual ~TCPServer();
 
 	inline const char* getAddress() { return mIP; }

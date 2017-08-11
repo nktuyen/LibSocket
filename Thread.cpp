@@ -22,13 +22,13 @@ void* ThreadFunc(void* lparam)
 	int res = 0;
 	if (nullptr != pThread) {
 		if (!pThread->Initialize()) {
-			return pThread->Finalize();
+			return ThreadReturn(pThread->Finalize());
 		}
 		else {
-			return pThread->Run();
+			return ThreadReturn(pThread->Run());
 		}
 	}
-	return res;
+	return ThreadReturn(res);
 }
 
 Thread::Thread()

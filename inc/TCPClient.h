@@ -1,8 +1,8 @@
 #ifndef __TCP_CLIENT_H__
 #define __TCP_CLIENT_H__
 //////////////////////////////////////////////////////////////////////////
-#include "../LibSocket/inc/Thread.h"
-#include "../LibSocket/inc/Socket.h"
+#include "Thread.h"
+#include "Socket.h"
 
 namespace t{
 //////////////////////////////////////////////////////////////////////////
@@ -19,6 +19,7 @@ private:
 public:
 	TCPClient(char* serverIP, unsigned short serverPort);
 	virtual ~TCPClient();
+	bool Connect();
 	int Send(char* buffer, int len);
 protected:
 	bool onInitialize();

@@ -1,8 +1,8 @@
 #ifndef __TCP_CONNECTION_H__
 #define __TCP_CONNECTION_H__
 //////////////////////////////////////////////////////////////////////////
-#include "../LibSocket/inc/Socket.h"
-#include "../LibSocket/inc/Thread.h"
+#include "Socket.h"
+#include "Thread.h"
 
 class TCPConnection : public t::Thread
 {
